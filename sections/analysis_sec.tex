@@ -1,0 +1,14 @@
+\section{Analysis and Extensions}
+\label{sec:analysis}
+
+\subsection{Sparsity, Scale, and Cross-Architecture Generalization}
+\label{sec:boundaries}
+
+The headline comparison fixes the sparsity budget at 10\%. Sweeping it from 5\% to 30\% at a single seed, no tested level shows gradient attribution outperforming a shared random mask (Figure~\ref{fig:sparsity}, Appendix~\ref{app:sparsity}). The sweep is preliminary and inherits the pool confound rather than isolating the budget, so we report it as a boundary check on the direction of the effect rather than as evidence for the sparsity-constraint view.
+
+Boundaries in scale and task order were probed next, followed by a second architecture. No single-seed probe reverses the conclusion, but a reversed task order shifts BWT by more than any method difference, which is why every conclusion in this paper is scoped to the tested sequence (Table~\ref{tab:scale_obs}, Appendices~\ref{app:sparsity}--\ref{app:task_order}). On Phi-2, an architecturally distinct family, the within-\texttt{lora\_B} direction replicates under the density-unmatched protocol across four seeds, with an effect size comparable to Qwen2.5-3B. Two features of that replication matter for how it should be read: the two Phi-2 designs use different LoRA target sets and are reported separately rather than pooled, and Phi-2 forgets roughly $2.5\times$ less overall, so the magnitude is architecture-dependent even though the direction is not (Appendix~\ref{app:cross_arch}).
+
+\subsection{Module Concentration and Calibration Robustness}
+\label{sec:module}
+
+The gradient mask does not select uniformly across module types: within \texttt{lora\_B} it concentrates on output projections and to a lesser degree on \texttt{up\_proj}, together accounting for a little over half of all selections, while down projections receive well below the uniform rate. The pattern is consistent across calibration sources and peaks at middle layers (Appendix~\ref{app:mask_concentration}). That concentration invites the reading that it causes the gradient mask's higher BWT, and the \texttt{uniform\_B} controller tests it by spreading the same budget across modules. The controller contradicts the reading: three of four seeds land on the gradient side rather than the random side. Because those offsets are taken against different session baselines (Appendix~\ref{app:nf4_drift}), we treat the ablation as failing to establish the mechanism rather than as evidence against the concentration itself, and neither the within-\texttt{lora\_B} finding nor its density-matched control depends on it (Figure~\ref{fig:oproj_ablation_main}). The result is also insensitive to the calibration domain: pooling in-domain rather than out-of-domain calibration changes 42\% of the selected parameters, yet the loss-based BWT moves by less than a tenth of the between-seed spread (Appendix~\ref{app:calibration}).
