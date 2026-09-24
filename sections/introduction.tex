@@ -38,7 +38,7 @@ and legal showing no reliable difference,
 % \paragraph{Contributions.}
 % \begin{enumerate}[nosep,leftmargin=*]
 % \item 
-\textbf{A gradient-attribution confound in LoRA continual learning.} Under zero-init LoRA the gradient with respect to \texttt{lora\_A} is identically zero, so gradient masks select from \texttt{lora\_B} only while the usual random baseline draws from both pools. Comparisons that do not match the pool compare a selection rule against a selection rule plus a pool change.
+\textbf{Pool confound.} Under zero-init LoRA, gradient masks select only from \texttt{lora\_B}; an unrestricted random baseline therefore changes both the rule and the pool.
 % \item 
 \\
 % \textbf{Density-matched evidence that random selection is not worse.} At equal parameter count the random mask achieves the lower loss-based BWT in every seed, an advantage concentrated on the medical task, with code and math in the same direction and no reliable difference on legal. The pattern is a stability--plasticity trade-off, not a uniformly better mask.
@@ -48,7 +48,7 @@ and legal showing no reliable difference,
 
 % \textbf{Empirical findings under density matching and practical recommendations:} Holding parameter counts strictly equal, uniform random masking matches or beats compute-heavy gradient attribution on loss-based backward transfer, yielding consistently lower forgetting across all seeds due to a favorable stability–plasticity trade-off. On discrete-option task accuracy, the two strategies remain statistically indistinguishable. Based on these loss-based findings, we recommend dropping the calibration attribution pass in continual learning. Doing so eliminates per-task calibration backpropagation (64 forward–backward steps, a 12.8% saving on training compute) and frees the pipeline from calibration dataset dependencies.
 
-\textbf{Density-matched evidence on loss-based forgetting.} Under strict equal-parameter control, Random-B achieves lower loss-based backward transfer (Loss-based BWT) in all seven seeds, a pattern consistent with a stability--plasticity trade-off under the tested sequence. On final task accuracy for the discrete-option benchmarks, however, the 95\% confidence interval spans zero and extends to 4.80 percentage points in Grad-B's favour, so the pre-specified 4-point non-inferiority criterion is not met. The attribution pass is therefore not justified by the loss-based evidence, while its accuracy consequences remain inconclusive at $n=7$. Removing it eliminates 64 calibration forward--backward steps, an overhead equal to 12.8\% of the 500-step training budget (11.3\% of the combined 564-step count), together with the calibration-data requirement.
+\textbf{Density-matched evidence.} Random-B has lower loss-based BWT in all seven seeds, but accuracy remains inconclusive (CI upper bound $+4.80$\,pp; 4\,pp non-inferiority unmet). On loss, attribution is not justified; removing it eliminates 64 calibration steps and their data requirement.
 
 % \end{enumerate}
 
