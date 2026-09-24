@@ -32,13 +32,14 @@ for tick in [-8, -6, -4, -2, 0, 2, 4, 6]:
     c.drawRightString(left - 6, y(tick) - 2.5, str(tick))
 
 # Four-percentage-point non-inferiority margin.
+mean_x = right - 22
 c.setStrokeColor(HexColor("#C0392B"))
 c.setLineWidth(0.9)
 c.setDash(4, 3)
 c.line(left, y(4), right, y(4))
 c.setDash()
 c.setFillColor(HexColor("#C0392B"))
-c.drawString(right - 65, y(4) + 4, "4 pp margin")
+c.drawRightString(mean_x - 10, y(4) + 4, "4 pp margin")
 
 # Seed points.
 step = 39
@@ -53,7 +54,6 @@ for x_pos, value, seed in zip(x_positions, values, seeds):
     c.setFillColor(HexColor("#2E86AB"))
 
 # Mean and confidence interval.
-mean_x = right - 22
 c.setStrokeColor(HexColor("#27AE60"))
 c.setFillColor(HexColor("#27AE60"))
 c.setLineWidth(1.3)
