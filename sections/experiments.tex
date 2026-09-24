@@ -20,7 +20,7 @@ Holding the pool fixed changes the picture. We introduce a Random-B control draw
 \subsection{Density-Matched Control}
 \label{sec:d1}
 
-Pool and criterion are separated cleanly only when density is matched as well. The comparison above leaves the gradient arm activating about 20\% of the pool against 10\% for Random-B, so the two arms still differ in how many coordinates they train. D1 removes that difference, with both arms drawing exactly 10\% of \texttt{lora\_B} and only the ranking rule differing. At matched density the random mask again achieves the lower loss-based BWT in every seed, by a larger margin than in the density-unmatched comparison (Table~\ref{tab:d1}); it reproduces at the same magnitude on a second GPU, and the direction holds under a reversed task order.
+Pool and criterion are separated cleanly only when density is matched as well. The comparison above leaves the gradient arm activating about 20\% of the pool against 10\% for Random-B, so the two arms still differ in how many coordinates they train. D1 removes that difference, with both arms drawing exactly 10\% of \texttt{lora\_B} and only the ranking rule differing. At matched density the random mask again achieves the lower loss-based BWT in every seed, by a larger margin than in the density-unmatched comparison (Table~\ref{tab:d1}). The contrast reproduces at a similar magnitude in a second hardware/software environment; in a separate three-seed sensitivity check, reversing the execution order of the two arms does not reverse the Random-B--Grad-B contrast (Appendix~\ref{app:nf4_drift}).
 
 \begin{table}[!t]
 \caption{\textbf{Headline result (D1, density-matched).} Both arms select the same 1{,}651{,}508 parameters (10\% of \texttt{lora\_B}); only the criterion differs. Per-seed loss-based BWT and $\Delta = \text{Random-B} - \text{Grad-B}$ (negative = random-B forgets less), seven sessions, one seed each. The last column is the density-\emph{unmatched} contrast from the same sessions, that is, Random-B against the unrestricted gradient mask ($\Delta = \text{Random-B} - \text{Grad-Full}$) rather than against Grad-B.}
@@ -58,8 +58,9 @@ reported above each pair.
 % Because the task-level contributions span roughly two orders of magnitude, the left panel uses a broken $y$-axis: Code, Legal, and Math are shown on the lower range, while Medical is shown on the upper range. 
 Creative is the final task and therefore has no backward-transfer contribution. The right panel shows
 the aggregate loss-based BWT on a separate scale. Random-B exhibits less loss-based
-forgetting on every prior task, with most of the aggregate difference
-concentrated on Medical. Per-seed results are reported in Appendix~\ref{app:d1_per_task}.
+forgetting on Code, Medical, and Math; the Legal difference is negligible and changes
+sign across seeds. Most of the aggregate difference is concentrated on Medical.
+Per-seed results are reported in Appendix~\ref{app:d1_per_task}.
 }
 \label{fig:per_task}
 \end{figure}
@@ -67,8 +68,6 @@ concentrated on Medical. Per-seed results are reported in Appendix~\ref{app:d1_p
 The aggregate gain is not spread evenly across the five tasks, and where it concentrates bears on how the effect should be read. Medical carries about four fifths of it, while code and math contribute the remainder in the same direction; on legal the arms are indistinguishable. 
 % Removing the medical task leaves the matched contrast at a little over a quarter of its headline size and still negative in every seed. 
 % The three-task test is directional only, and the seven-seed test carries the significance claim (Appendix~\ref{app:d1_per_task}).
-Two rival explanations for the effect can be excluded from the same data. The gradient arm's loss on each task's own diagonal is lower than the random arm's in every seed and task, yet it forgets more, so the two arms differ in retention rather than in learning capacity (Appendix~\ref{app:d1_diagonal}). A second reading, 
-% that the gradient arm would do better with its full budget, rests on a single seed: at seed 42 the density-matched gradient arm beats the unrestricted one, but at the seven-seed mean the ordering reverses.
-the effect of restoring the gradient arm’s full budget is not stable across seeds: at seed 42, the density-matched gradient arm outperforms the unrestricted one, whereas the ordering reverses at the seven-seed mean.
+Two explanations can be assessed from the same data. First, the gradient arm's loss on each task's own diagonal is lower than the random arm's in every seed and task, yet it subsequently forgets more, so the two arms differ in retention rather than initial learning capacity. Endpoint reconstruction further shows that the contrast is not explained merely by a lower starting point (Appendix~\ref{app:d1_diagonal}). By contrast, restoring the gradient arm's full budget produces seed-dependent results: at seed 42 the density-matched gradient arm outperforms the unrestricted one, whereas the ordering reverses at the seven-seed mean. It therefore does not provide a stable explanation of the headline effect.
 
 \input{sections/accuracy_branch}

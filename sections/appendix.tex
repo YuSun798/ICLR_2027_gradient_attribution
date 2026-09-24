@@ -51,12 +51,12 @@ No mask & 0\textsuperscript{\ddag} & 0 & No \\
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{\dag}$\emph{Full-parameter} attribution configuration (\texttt{--include-frozen}, scoring all 3{,}085{,}938{,}688 base parameters); no method in this paper uses this configuration. The attribution actually used in the continual-learning experiments has a transient backward peak of $\sim$0.73\,GB (4-bit NF4, seq 512, 64 calibration samples, gradient checkpointing enabled; \texttt{overhead\_mb} = 699.43\,MiB over the base model), and contributes $0$ for random-B-only masking by construction (Table~\ref{tab:cl_3b}). \\ $^{\ddag}$Zero by construction (no attribution pass is run), not a measured value.}
+{\footnotesize $^{\dag}$\emph{Full-parameter} attribution configuration (\texttt{--include-frozen}, scoring all 3{,}085{,}938{,}688 base parameters); no method in this paper uses this configuration. The attribution used in the continual-learning experiments records a $\sim$0.73\,GB transient allocation above the resident base model during its separate calibration pass (4-bit NF4, seq 512, 64 calibration samples, gradient checkpointing enabled; \texttt{overhead\_mb} = 699.43\,MiB). This is not an increase over the ordinary training backward peak; the removable costs are the additional calibration pass, its wall-clock compute, and its data requirement. \\ $^{\ddag}$Zero by construction because no separate attribution pass is run, not a measured end-to-end peak-memory saving.}
 \end{table}
 
 Both measured columns of Table~\ref{tab:memory} come from a single full-parameter attribution profiling run (\texttt{--include-frozen}, \texttt{--full-precision}), so they are internally consistent; that run scores all 3{,}085{,}938{,}688 base-model parameters, a configuration no reported method uses. We describe the memory figure first, then the time figure.
 
-Gradient attribution requires 13.8\,GB peak GPU memory for Qwen2.5-3B (\texttt{max\_memory\_allocated}, 13168\,MiB $\to$ 13.8\,GB in decimal units). This figure is from the full-parameter attribution configuration, which scores all 3{,}085{,}938{,}688 parameters of the base model. The peak comprises four components (the resident base-model weights, the forward and backward activation graph over the full model, the full-parameter gradient accumulator, and the CUDA context), but these were not separately instrumented in the surviving run record, so we report the total rather than a measured decomposition. The backward pass does traverse the base model: attribution computes $\partial \mathcal{L}/\partial w$ over calibration samples, so both the forward and backward graphs span the full parameter space rather than the 29.9M-parameter LoRA surface. This configuration peaks at 13.8\,GB, of which $\sim$90\% is resident base-model weights (6.23\,GB in BF16) plus the full-model gradient buffer (6.23\,GB); these are costs the CL configuration does not pay. It is therefore an upper bound on a configuration no method uses, not a measure of attribution's own overhead; the attribution actually used in the CL experiments peaks at $\sim$0.73\,GB of transient overhead above the base model, and it is that overhead the within-\texttt{lora\_B} random baseline removes (Table~\ref{tab:cl_3b}).
+Gradient attribution requires 13.8\,GB peak GPU memory for Qwen2.5-3B (\texttt{max\_memory\_allocated}, 13168\,MiB $\to$ 13.8\,GB in decimal units). This figure is from the full-parameter attribution configuration, which scores all 3{,}085{,}938{,}688 parameters of the base model. The peak comprises four components (the resident base-model weights, the forward and backward activation graph over the full model, the full-parameter gradient accumulator, and the CUDA context), but these were not separately instrumented in the surviving run record, so we report the total rather than a measured decomposition. The backward pass does traverse the base model: attribution computes $\partial \mathcal{L}/\partial w$ over calibration samples, so both the forward and backward graphs span the full parameter space rather than the 29.9M-parameter LoRA surface. This configuration peaks at 13.8\,GB, of which $\sim$90\% is resident base-model weights (6.23\,GB in BF16) plus the full-model gradient buffer (6.23\,GB); these are costs the CL configuration does not pay. It is therefore an upper bound on a configuration no method uses, not a measure of attribution's own overhead. The CL attribution pass records a $\sim$0.73\,GB transient allocation above the resident base model, but ordinary training also performs backward passes; this is not an incremental end-to-end peak-memory cost. The random baseline removes the separate calibration pass and its time/data costs, not the training backward peak (Table~\ref{tab:cl_3b}).
 
 The 584.9\,s per-task figure is the wall-clock of that same full-parameter run (\texttt{full\_alora\_time\_s} = 584.9\,s). As a checkpointing-off contrast, an earlier LoRA-only attribution profiling run (4-bit, seq 1024, 256 calibration samples, gradient checkpointing disabled) reports 3{,}512\,MiB of overhead, a different regime (checkpointing off, longer sequences) that should not be combined with the 0.73\,GB figure above.
 
@@ -97,17 +97,17 @@ Std  & 0.061 & 0.019 & 0.047 \\
 \end{table}
 
 \begin{table}[h]
-\caption{Confounded comparison (Qwen2.5-3B, rank-16 LoRA, 5 tasks, $n{=}5$ seeds). Incremental cost is the attribution pass's transient peak ($\sim$0.73\,GB; $0$ for random by construction; Appendix~\ref{app:attribution_cost}). Across all tables, bold marks the better value in its column.}
+\caption{Confounded comparison (Qwen2.5-3B, rank-16 LoRA, 5 tasks, $n{=}5$ seeds). The last column records whether an additional calibration forward--backward pass is required; its time and data costs are described in Appendix~\ref{app:attribution_cost}. Across all tables, bold marks the better value in its column.}
 \label{tab:cl_3b}
 \centering
 \small
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Method} & \textbf{BWT $\downarrow$} & \textbf{Loss $\downarrow$} & \textbf{Incremental cost} \\
+\textbf{Method} & \textbf{BWT $\downarrow$} & \textbf{Loss $\downarrow$} & \textbf{Calibration pass?} \\
 \midrule
-Shared random & $\mathbf{0.428} \pm 0.019$ & $\mathbf{1.940} \pm 0.021$ & 0 \\
-Gradient mask & $0.437 \pm 0.061$ & $1.966 \pm 0.037$ & $\sim$0.73\,GB \\
-No mask & $0.484 \pm 0.047$ & $1.970 \pm 0.033$ & 0 \\
+Shared random & $\mathbf{0.428} \pm 0.019$ & $\mathbf{1.940} \pm 0.021$ & No \\
+Gradient mask & $0.437 \pm 0.061$ & $1.966 \pm 0.037$ & Yes \\
+No mask & $0.484 \pm 0.047$ & $1.970 \pm 0.033$ & No \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -158,7 +158,7 @@ noise level. They are not: each measures a different thing at a different
 granularity, and the table below separates them.
 
 \begin{table}[h]
-\caption{Three distinct quantities that are sometimes all called run-to-run \emph{noise}. Only (a) is random error against a paired comparison; (b) and (c) are systematic offsets. They are not three estimates of one noise magnitude.}
+\caption{Distinct quantities that are sometimes all called run-to-run \emph{noise}. The paired tests use the across-seed SD of the within-session contrasts; the protocol-equivalence discrepancy is an implementation check and does not enter inference. Position and cross-session effects are reported as sensitivities rather than as interchangeable error estimates.}
 \label{tab:noise_levels}
 \centering
 \small
@@ -166,9 +166,10 @@ granularity, and the table below separates them.
 \toprule
 \textbf{Level} & \textbf{What varies} & \textbf{Magnitude} & \textbf{What it measures} \\
 \midrule
-(a) within-session contrast noise & execution path only & $9.6 \times 10^{-5}$ & paired-comparison error; the only term the significance tests use \\
-(b) position (ordering) offset & position of the two arms & $0.064$ (seed 42, \texttt{gradient\_B}) & systematic; a position effect, not random error \\
-(c) cross-session absolute offset & session and hardware & $0.120$ (\texttt{full\_alora}, seed 42) & systematic; shifts the absolute BWT level between sessions \\
+(a) protocol-equivalence check & execution path only & $9.6 \times 10^{-5}$ & numerical agreement between two code paths; not an inferential error term \\
+(b) across-seed paired contrast & independent seed & SD$(\Delta_s)=0.071$ & variability used by the paired significance test \\
+(c) position (ordering) sensitivity & position of the two arms & $0.064$ (seed 42, \texttt{gradient\_B}) & method-position interaction in a three-seed check \\
+(d) cross-session variation & session, hardware, and method & up to $0.120$ (\texttt{full\_alora}, seed 42) & method-specific offset of unknown origin \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -193,14 +194,18 @@ granularity, and the table below separates them.
 process reproduces the multi-method BWT to within $9.6\times10^{-5}$, an order of
 magnitude below the pre-specified $10^{-3}$ threshold. This is a check on the
 protocol implementation, not on run-to-run variation of the model: two code
-paths that should agree do agree.
+paths that should agree do agree. The paired $t$ tests instead use the
+across-seed standard deviation of the within-session paired contrasts,
+SD$(\Delta_s)=0.071$ for D1.
 
 \paragraph{(b) Same session, arm order swapped.} Within one D1 session the two
 arms run back to back, and reversing their order is a genuine perturbation of
 the run. At seed 42 the \texttt{gradient\_B} arm's BWT moves by 0.064 between the
 two orders; at seeds 789 and 2048 both arms
 stay within $1.4\times10^{-2}$. This is a within-session positional effect, and
-the within-run contrast survives it at all three seeds.
+the within-run contrast survives it at all three tested seeds. Because this
+sensitivity analysis covers three rather than seven seeds, it does not establish
+the population distribution of the position effect.
 
 \paragraph{(c) Cross-session, same seed.} The absolute BWT of a fixed method and
 seed is not reproducible across sessions. For seed 42, \texttt{full\_alora}
@@ -227,7 +232,7 @@ its own row. Spread is $\max-\min$ across the runs in which the method appears.}
 \textbf{Method} & \textbf{Run A} & \textbf{Run B} & \textbf{Run C} & \textbf{Run D / spread} \\
 \midrule
 Gradient mask (\texttt{full\_alora}) & 0.491 & 0.378 & 0.498 & --- (0.120) \\
-Gradient-B@10\% (\texttt{gradient\_B}) & --- & --- & 0.453 & 0.423 \\
+Gradient-B@10\% (\texttt{gradient\_B}) & --- & --- & 0.453 & 0.423 (0.030) \\
 Random mask (\texttt{random\_A+B}) & 0.435 & 0.349 & --- & --- \\
 Random B-only (\texttt{random\_B\_only}) & 0.326 & 0.324 & 0.278 & 0.278 (0.048) \\
 \bottomrule
@@ -237,9 +242,9 @@ Random B-only (\texttt{random\_B\_only}) & 0.326 & 0.324 & 0.278 & 0.278 (0.048)
 \paragraph{Why this is not called NF4 non-determinism.} Quantization is the same
 in every run of Table~\ref{tab:nf4_drift}, so it cannot by itself explain a
 cross-session spread while leaving a same-process protocol split at
-$9.6\times10^{-5}$. The level-(c) spread is a property of the absolute BWT
-level of a session, not a random perturbation of the comparison. We therefore
-report it as \emph{cross-session variation in the absolute BWT level} and do not
+$9.6\times10^{-5}$. The cross-session spread is method-specific rather than a
+common shift shared by all arms. We therefore report it as a \emph{method-specific
+cross-session offset of unknown origin} and do not
 attribute it to a mechanism. Two consequences follow. First, only within-run
 comparisons are used for any claim in this paper. Second, the \texttt{random\_B\_only}
 value that enters Table~\ref{tab:d1} is the D1 session's own $0.278$, taken from the
@@ -388,10 +393,10 @@ A reversed-order experiment yields BWT $\approx 0.11$ for all masking methods, c
 \paragraph{Cross-Architecture Comparison}
 \label{app:cross_arch}
 
-Both cross-architecture designs are tabulated together below: the confounded design (gradient selecting B-only, random selecting A+B) and the within-\texttt{lora\_B} design (both methods restricted to \texttt{lora\_B}). The two designs are not comparable row-for-row because the Phi-2 within-B rows use a different LoRA target set; \S\ref{sec:boundaries} discusses both.
+Both cross-architecture designs are tabulated in Table~\ref{tab:cross_arch}: the confounded design (gradient selecting B-only, random selecting A+B) and the within-\texttt{lora\_B} design (both methods restricted to \texttt{lora\_B}). The two designs are not comparable row-for-row because the Phi-2 within-B rows use a different LoRA target set; \S\ref{sec:boundaries} discusses both.
 
 \begin{table}[t]
-\caption{Cross-architecture comparison on Qwen2.5-3B and Phi-2 (2.78B, GPT-NeoX-style), both arms within a row sharing one target set. \emph{Top:} confounded design, gradient selecting B-only and random selecting A+B; both architectures use all linear projections (\texttt{q,k,v,fc1,fc2,dense}; pool $23{,}592{,}960$). \emph{Bottom:} within-\texttt{lora\_B} design, both methods restricted to \texttt{lora\_B}; the Phi-2 rows use a \emph{different} target set omitting \texttt{dense} (\texttt{q,k,v,fc1,fc2}; pool $20{,}971{,}520$, 12.5\% smaller), so the two designs are not comparable row-for-row. The within-\texttt{lora\_B} rows are matched on pool but \emph{not} density (the gradient mask activates approximately $2\times$ the B parameters of Random-B), as on Qwen2.5-3B.}
+\caption{Cross-architecture comparison on Qwen2.5-3B and Phi-2 (2.78B, GPT-NeoX-style), with both arms within a row sharing one target set. Qwen2.5-3B targets \texttt{q/k/v/o/gate/up/down\_proj} (pool $29{,}933{,}568$), whereas Phi-2 uses GPT-NeoX-style \texttt{q,k,v,fc1,fc2,dense} projections (pool $23{,}592{,}960$) in the confounded design. In the within-\texttt{lora\_B} design, the Phi-2 rows omit \texttt{dense} (pool $20{,}971{,}520$, 12.5\% smaller), so the two Phi-2 designs are not comparable row-for-row. The within-\texttt{lora\_B} rows are matched on pool but \emph{not} density (the gradient mask activates approximately $2\times$ the B parameters of Random-B), as on Qwen2.5-3B.}
 \label{tab:cross_arch}
 \centering
 \small
@@ -456,21 +461,21 @@ Random   & 0.349 & 0.324 & $-0.025$ \\
 The accuracy evaluation is reported in the main text, \S\ref{sec:accuracy_branch}, together with the option-scoring protocol; its per-seed values and the matched loss contrast are tabulated below. (Table~\ref{tab:accuracy_branch})
 
 \begin{table}[t]
-\caption{For accuracy, positive values indicate higher accuracy for Grad-B; for loss-based BWT, positive values indicate greater forgetting for Grad-B. Col.~2 (accuracy difference) is measured on an A800 GPU; Col.~3 (loss-based BWT difference) is measured on the same A800 GPU. Taken together they form a second environment relative to the original V100 loss runs. Col.~2 carries the 95\% $t$-interval on the seven-seed mean. Col.~3: mean $+0.152$ (SD $0.0749$, $t = 5.37$, CI $[+0.083, +0.221]$, 7/7 same direction). The abstract's $-0.155$ is the same loss contrast measured on the V100 stack under the opposite convention [Random $-$ Grad].}
+\caption{Col.~2 is the Grad-B minus Random-B difference in mean final option-scoring accuracy over Medical and Legal after the five-task sequence, in percentage points; it is a final-performance measure, not accuracy-BWT. Positive values favour Grad-B. Col.~3 is the loss-based BWT difference on the same A800 environment, where positive values indicate greater forgetting for Grad-B. Col.~2 carries the 95\% $t$-interval on the seven-seed mean. Col.~3 has mean $+0.152$ (SD $0.0749$, $t = 5.37$, CI $[+0.083, +0.221]$, 7/7 same direction). The V100 contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 contrast difference has mean $-0.0033$ and SD $0.0441$, so replication is strongest at the mean and directional levels rather than as seed-wise numerical identity.}
 \label{tab:accuracy_branch}
 \centering
 \small
 \begin{tabular}{@{}lrr@{}}
 \toprule
-\textbf{Seed} & \textbf{Accuracy $\Delta$ [Grad $-$ Rand]} & \textbf{Loss BWT $\Delta$ [Grad $-$ Rand]} \\
+\textbf{Seed} & \textbf{Final accuracy $\Delta$ [Grad $-$ Rand], pp} & \textbf{Loss BWT $\Delta$ [Grad $-$ Rand]} \\
 \midrule
-42   & $+0.0200$ & $+0.2320$ \\
-123  & $0.0000$  & $+0.1647$ \\
-456  & $+0.0048$ & $+0.1300$ \\
-789  & $-0.0698$ & $+0.0786$ \\
-1024 & $+0.0460$ & $+0.0514$ \\
-2048 & $+0.0051$ & $+0.2572$ \\
-4096 & $+0.0600$ & $+0.1492$ \\
+42   & $+2.00$ & $+0.2320$ \\
+123  & $0.00$  & $+0.1647$ \\
+456  & $+0.48$ & $+0.1300$ \\
+789  & $-6.98$ & $+0.0786$ \\
+1024 & $+4.60$ & $+0.0514$ \\
+2048 & $+0.51$ & $+0.2572$ \\
+4096 & $+6.00$ & $+0.1492$ \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Summary (column 2 in percentage points, column 3 in BWT units)}} \\
 Mean & $+0.94$\,pp & $+0.152$ \\
@@ -484,7 +489,7 @@ SD   & $4.17$\,pp & $0.0749$ \\
 \section{The Math Task: Truncation Audit}
 \label{app:math_audit}
 
-Loss on math decreases with training while accuracy on the same task collapses to zero for all arms: peak accuracy at math's own training phase is $0.04$ and every arm ends at $0.00$. The cause is not a format mismatch---the numeric-match function accepts a bare number, a number with surrounding text, and a complete solution alike, and the training and evaluation prompt prefixes are identical by construction. The surviving explanation is truncation: a generation audit reports 56--95\% of generations across all tasks and arms reaching the 256-token cap without an end-of-sequence token, and for math specifically 81--90\% of mathematical generations, accumulated across the six evaluation calls per task, reach the cap the same way. The last number in a truncated generation is an intermediate quantity, so the reference answer is absent from the value the scorer inspects. Every arm shares the same cap and scorer, so the bias is common rather than arm-specific. We do not treat the math column as a forgetting result: under option-based scoring math yields no score at all, and under generation scoring it is confounded with truncation. Scoring each option by its log-likelihood removes the truncation dependence, and that is the scorer used above.
+Loss on math decreases with training while accuracy on the same task collapses to zero for all arms: peak accuracy at math's own training phase is $0.04$ and every arm ends at $0.00$. The numeric-match function accepts a bare number, a number with surrounding text, and a complete solution, and the prompt prefixes are identical; nevertheless, the interaction between output format and the 256-token limit makes the generation-based score unreliable. A generation audit reports 56--95\% of generations across all tasks and arms reaching the cap without an end-of-sequence token, and for math specifically 81--90\% of generations reach the cap. The last number in a truncated solution is often an intermediate quantity, so the reference answer is absent from the value the scorer inspects. Every arm shares the same cap and scorer, so the bias is common rather than arm-specific. We do not treat the math column as a forgetting result: under option-based scoring math yields no score, and under generation scoring it is confounded with truncation.
 
 % \section{Limitations}
 % \label{app:limitations}
@@ -518,10 +523,11 @@ Table~\ref{tab:positioning} places our contribution against the gradient-attribu
 \midrule
 EWC / SI / MAS & No & No \\
 PiSSA ($B\neq0$) & N/A by init & No \\
-Attribution-Guided CL & No & No \\
+Attribution-Guided CL & Unclear$^{\dagger}$ & Unclear$^{\dagger}$ \\
 \textbf{Ours (within-\texttt{lora\_B})} & \textbf{Yes} & \textbf{Yes} \\
 \bottomrule
 \end{tabular}
+\parbox{0.88\textwidth}{\footnotesize $^{\dagger}$The published description does not establish all initialization, attribution-timing, baseline-pool, and mask-scope details required to classify these two axes; we therefore do not infer a pool mismatch.}
 \end{table}
 
 Table~\ref{tab:rule_positioning} lists the selection rules this paper is positioned against and marks which we train under one protocol. Only the rules we train contribute empirical numbers here; the rest are compared by their published design, with none of their reported numbers presented as a measurement of ours.
@@ -643,5 +649,3 @@ A second rival reading is that BWT, being a difference of losses, is inflated fo
 \end{table}
 
 Both checks are loss-based (accuracy is measured separately in the accuracy branch, \S\ref{sec:accuracy_branch}), use a single task order, and cover Qwen2.5-3B only. The endpoint reconstruction is a derived quantity whose per-seed differences are of the same magnitude as the cross-run drift documented in Appendix~\ref{app:nf4_drift}; it is therefore offered as a qualitative directional exclusion, not a significance claim.
-
-
