@@ -460,7 +460,8 @@ Random   & 0.349 & 0.324 & $-0.025$ \\
 
 The accuracy evaluation is reported in the main text, \S\ref{sec:accuracy_branch}, together with the option-scoring protocol; its per-seed values and the matched loss contrast are tabulated below. (Table~\ref{tab:accuracy_branch})
 
-The interval is wide because the per-seed differences are wide, not because the mean is large. With the observed across-seed standard deviation of 4.17 pp, the 95\% interval half-width is about 3.9 pp at $n=7$ and would fall below 2.0 pp only at roughly twenty seeds. This is a planning figure for the sample size a tighter bound would require at the observed spread, not a claim that more seeds would reverse the result: the mean is near zero, so additional seeds would narrow the interval around it rather than move it away from zero.
+The interval is wide because the per-seed differences are wide, not because the mean is large. With the observed across-seed standard deviation of 4.17 pp, the 95\% interval half-width is about 3.9 pp at $n=7$ and would fall below 2.0 pp only at roughly twenty seeds. 
+% This is a planning figure for the sample size a tighter bound would require at the observed spread, not a claim that more seeds would reverse the result: the mean is near zero, so additional seeds would narrow the interval around it rather than move it away from zero.
 
 \begin{table}[t]
 \caption{Per-seed results, both columns in the direction [Grad $-$ Random] (positive = gradient forgets more). Col.~2 is the accuracy-BWT difference: the difference in mean final-minus-learned accuracy over the prior discrete-option tasks, not a difference of final accuracies. It is therefore a retention quantity on the same footing as the loss column and does not mix learning with retention. Col.~2 is reported in percentage points and is measured in the A800 accuracy runs; Col.~3 is the loss-based BWT difference from the A800 loss runs. Together they form a second environment relative to the original V100 loss runs. Col.~2 carries the 95\% $t$-interval on the seven-seed mean. Col.~3 has mean $+0.152$ (SD $0.0749$, $t=5.37$, CI $[+0.083,+0.221]$, 7/7 same direction). The V100 loss contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 loss-contrast difference has mean $-0.0033$ and SD $0.0441$, so individual seeds move between environments even though the average does not.}
@@ -555,32 +556,33 @@ Random-B; Random A+B~\citep{su2024random} & none, uniform; static CL mask, \text
 \section{D1 Per-Task and Per-Seed Decomposition}
 \label{app:d1_per_task}
 
-Table~\ref{tab:d1_per_task} gives the seven-seed mean per-task
-contribution. Table~\ref{tab:d1_per_task_seeds} gives the same quantity for each
+% Table~\ref{tab:d1_per_task} gives the seven-seed mean per-task
+% contribution. 
+Table~\ref{tab:d1_per_task_seeds} gives the same quantity for each
 seed, so the task-level pattern can be checked against the seed-level one; the
 main text reports the same decomposition as a figure (Figure~\ref{fig:per_task}). Each
 entry is $\text{loss\_matrix}[4][j] - \text{loss\_matrix}[j][j]$ for prior task
 $j$; the final column is the mean over the four tasks, which is the per-seed
 aggregate $\Delta$ of Table~\ref{tab:d1}.
 
-\begin{table}[!htbp]
-\caption{D1 per-task decomposition of loss-based BWT, averaged over the seven seeds. Each entry is $\text{loss\_matrix}[4][j] - \text{loss\_matrix}[j][j]$ for prior task $j$, that task's contribution to the aggregate; the last column is its share of the aggregate $\Delta$ in absolute value. Creative is the final task and contributes no forgetting term. The aggregate is concentrated on medical (79.9\%) but not confined there: excluding medical the matched contrast remains $-0.042$ (7/7 negative), while code and math are each negative in 7/7 seeds and legal is not established.}
-\label{tab:d1_per_task}
-\centering
-\small
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-\textbf{Prior task} & \textbf{random-B} & \textbf{gradient-B} & \textbf{$\Delta$} & \textbf{share of $\Delta$} \\
-\midrule
-Code    & $-0.021$ & $0.025$ & $-0.046$ & 7.4\% \\
-Medical & $0.998$ & $1.493$ & $-0.496$ & 79.9\% \\
-Legal   & $0.007$ & $0.010$ & $-0.003$ & 0.5\% \\
-Math    & $0.191$ & $0.266$ & $-0.076$ & 12.2\% \\
-\midrule
-Aggregate & $0.294$ & $0.449$ & $-0.155$ & 100\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+% \begin{table}[!htbp]
+% \caption{D1 per-task decomposition of loss-based BWT, averaged over the seven seeds. Each entry is $\text{loss\_matrix}[4][j] - \text{loss\_matrix}[j][j]$ for prior task $j$, that task's contribution to the aggregate; the last column is its share of the aggregate $\Delta$ in absolute value. Creative is the final task and contributes no forgetting term. The aggregate is concentrated on medical (79.9\%) but not confined there: excluding medical the matched contrast remains $-0.042$ (7/7 negative), while code and math are each negative in 7/7 seeds and legal is not established.}
+% \label{tab:d1_per_task}
+% \centering
+% \small
+% \begin{tabular}{@{}lrrrr@{}}
+% \toprule
+% \textbf{Prior task} & \textbf{random-B} & \textbf{gradient-B} & \textbf{$\Delta$} & \textbf{share of $\Delta$} \\
+% \midrule
+% Code    & $-0.021$ & $0.025$ & $-0.046$ & 7.4\% \\
+% Medical & $0.998$ & $1.493$ & $-0.496$ & 79.9\% \\
+% Legal   & $0.007$ & $0.010$ & $-0.003$ & 0.5\% \\
+% Math    & $0.191$ & $0.266$ & $-0.076$ & 12.2\% \\
+% \midrule
+% Aggregate & $0.294$ & $0.449$ & $-0.155$ & 100\% \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
 \begin{table}[h]
 \caption{Per-seed, per-task D1 decomposition ($\Delta = \text{random-B} - \text{gradient-B}$ for each prior task). Negative favours random-B. Legal is the only task whose sign is not consistent across seeds.}
