@@ -8,32 +8,32 @@
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.6\textwidth]{figures/fig_accuracy_ci.pdf}
-\caption{Final-accuracy validation. Blue points are the seven per-seed Grad-B minus Random-B differences in mean final option-scoring accuracy over Medical and Legal after the five-task sequence, in percentage points; green is the seven-seed mean with its 95\% interval $[-2.91, +4.80]$\,pp. The interval spans zero, so no reliable accuracy difference is detected, and its upper bound exceeds the 4\,pp non-inferiority margin, so non-inferiority of Random-B is not established. Per-seed values are in Appendix~\ref{app:accuracy_seeds}.}
+\caption{Accuracy-based validation. Blue points are the seven per-seed accuracy-BWT differences (Grad-B minus Random-B, percentage points) on the two discrete-option tasks, spanning $-6.98$ to $+6.00$ pp; green is the seven-seed mean with its 95\% interval $[-2.91,+4.80]$ pp. The plotted quantity is a difference of accuracy-BWT (mean final-minus-learned accuracy over prior tasks), a retention measure, not a difference of final accuracies. The interval spans zero, so no statistically reliable accuracy difference is detected, and it reaches past the 4 pp non-inferiority margin, so that criterion is not met. Per-seed values are in Appendix~\ref{app:accuracy_seeds}.}
 \label{fig:accuracy_ci}
 \end{figure}
 
-% One task is excluded from the accuracy read-out. Loss on math decreases with training while accuracy on the same task collapses to zero for every arm, a consequence of truncation rather than of the masking choice and common to all arms, so we do not treat the math column as a forgetting result; the audit is in Appendix~\ref{app:math_audit}.
+Loss-based BWT is a proxy for forgetting rather than the quantity of ultimate interest, so we evaluate
+the same masking comparison on task accuracy and ask whether the accuracy ordering agrees with
+the loss ordering. The evaluation reuses the primary protocol and the corrected task evaluators over
+the same seven seeds and 100 evaluation items per task, retraining from the base model on an A800
+rather than re-scoring a checkpoint. Accuracy is scored only for the two tasks with discrete options
+(Medical, MedQA four options; Legal, CaseHOLD), so every quantity below concerns those two.
 
-To test whether the loss-based forgetting difference is also reflected
-in task-level predictive performance, we evaluate the same D1 comparison
-using final accuracy after the five-task sequence. For each seed, the reported
-quantity is the Grad-B minus Random-B difference in mean option-scoring accuracy
-over Medical and Legal, the two tasks with discrete-option outputs. It combines
-learning and retention and is therefore a final-performance check, not an
-accuracy-based BWT measure.
+Across seven seeds, the accuracy-BWT difference averages $+0.94$ percentage points with a
+95\% interval of $[-2.91,+4.80]$ pp that spans zero. Here accuracy-BWT is the mean
+final-minus-learned accuracy over the prior discrete-option tasks, so it measures retention on the
+same footing as loss-based BWT and is not a difference of final accuracies. The individual seeds
+range from $-6.98$ to $+6.00$ pp, and it is that spread rather than a large mean that makes the
+interval wide at $n=7$. A 4 pp non-inferiority margin was specified in advance, and the measured
+upper bound exceeds it, so non-inferiority is not established.
 
-We detect no statistically reliable accuracy difference between the two
-masks. The mean Grad-B minus Random-B difference is +0.94 percentage
-points, with a 95\% confidence interval of $[-2.91, +4.80]$ pp. The
-interval spans zero, and its upper bound exceeds the pre-specified
-4~pp non-inferiority margin, so non-inferiority is not established.
-Thus, the loss-based forgetting difference does not translate into a
-detectable accuracy difference under this evaluation. Under the observed
-across-seed variability, a normal-approximation precision calculation indicates
-that roughly 20 seeds would be needed for a confidence interval narrow enough
-to resolve a 4~pp margin; this is a planning estimate, not evidence that the
-current non-inferiority criterion has been met.
+On the loss side, the same masks are separated: Grad-B forgets more in all seven seeds by a mean
+of $+0.152$ on the A800 loss runs. This agrees in mean to within $0.003$ with the V100 estimate
+after aligning sign conventions ($+0.155$ under [Grad $-$ Random]). Loss therefore resolves a
+difference the accuracy measurement does not; the accuracy interval bounds that difference rather
+than contradicting it.
 
-Per-seed values and evaluation details are reported in Appendix~\ref{app:accuracy_seeds}.
-Math is excluded from the accuracy analysis because its generations are
-truncated under the evaluation setup.
+Per-seed values and the interval construction are reported in Appendix~\ref{app:accuracy_seeds}.
+Math is excluded from the accuracy read-out because its generation-based score is confounded by
+truncation (Appendix~\ref{app:math_audit}).
+
