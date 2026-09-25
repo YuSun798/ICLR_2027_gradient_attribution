@@ -461,13 +461,13 @@ Random   & 0.349 & 0.324 & $-0.025$ \\
 The accuracy evaluation is reported in the main text, \S\ref{sec:accuracy_branch}, together with the option-scoring protocol; its per-seed values and the matched loss contrast are tabulated below. (Table~\ref{tab:accuracy_branch})
 
 \begin{table}[t]
-\caption{Col.~2 is the Grad-B minus Random-B difference in mean final option-scoring accuracy over Medical and Legal after the five-task sequence, in percentage points; it is a final-performance measure, not accuracy-BWT. Positive values favour Grad-B. Col.~3 is the loss-based BWT difference on the same A800 environment, where positive values indicate greater forgetting for Grad-B. Col.~2 carries the 95\% $t$-interval on the seven-seed mean. Col.~3 has mean $+0.152$ (SD $0.0749$, $t = 5.37$, CI $[+0.083, +0.221]$, 7/7 same direction). The V100 contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 contrast difference has mean $-0.0033$ and SD $0.0441$, so replication is strongest at the mean and directional levels rather than as seed-wise numerical identity.}
+\caption{Per-seed results, with both columns reported under the sign convention [Grad $-$ Random]. Col.~2 is the accuracy-BWT difference: the difference in mean final-minus-learned option-scoring accuracy over the prior discrete-option tasks (Medical and Legal), not a difference of final accuracies. It is therefore a retention quantity on the same footing as the loss-based BWT column. Col.~2 is reported in percentage points in every row and carries the 95\% $t$-interval on the seven-seed mean. Col.~3 is the loss-based BWT difference on the same A800 environment and has mean $+0.152$ (SD $0.0749$, $t = 5.37$, CI $[+0.083, +0.221]$, 7/7 same direction). The V100 contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 contrast difference has mean $-0.0033$ and SD $0.0441$, so replication is strongest at the mean and directional levels rather than as seed-wise numerical identity.}
 \label{tab:accuracy_branch}
 \centering
 \small
 \begin{tabular}{@{}lrr@{}}
 \toprule
-\textbf{Seed} & \textbf{Final accuracy $\Delta$ [Grad $-$ Rand], pp} & \textbf{Loss BWT $\Delta$ [Grad $-$ Rand]} \\
+\textbf{Seed} & \textbf{Accuracy-BWT $\Delta$ [Grad $-$ Rand], pp} & \textbf{Loss BWT $\Delta$ [Grad $-$ Rand]} \\
 \midrule
 42   & $+2.00$ & $+0.2320$ \\
 123  & $0.00$  & $+0.1647$ \\
