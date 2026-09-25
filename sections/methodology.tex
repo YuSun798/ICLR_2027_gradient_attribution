@@ -138,6 +138,11 @@ mismatch. Our primary comparison accordingly evaluates gradient and
 random selection within the same \texttt{lora\_B} pool; Section~\ref{sec:d1}
 additionally matches their selection density.
 
+This scope excludes Attribution-Guided CL~\citep{liu2026attributionguided},
+which computes attribution from a separately trained model. Because
+$B\neq0$ at scoring time in that procedure, the zero-initialization
+confound identified here does not apply to it.
+
 This confound is specific to standard zero-initialized LoRA. For example,
 PiSSA~\citep{meng2024pissa} initializes both $A$ and $B$ from principal
 singular values, so $B \neq 0$ and Equation~\ref{eq:a_grad} does not
