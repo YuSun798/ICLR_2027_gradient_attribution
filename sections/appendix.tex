@@ -460,8 +460,10 @@ Random   & 0.349 & 0.324 & $-0.025$ \\
 
 The accuracy evaluation is reported in the main text, \S\ref{sec:accuracy_branch}, together with the option-scoring protocol; its per-seed values and the matched loss contrast are tabulated below. (Table~\ref{tab:accuracy_branch})
 
+The interval is wide because the per-seed differences are wide, not because the mean is large. With the observed across-seed standard deviation of 4.17 pp, the 95\% interval half-width is about 3.9 pp at $n=7$ and would fall below 2.0 pp only at roughly twenty seeds. This is a planning figure for the sample size a tighter bound would require at the observed spread, not a claim that more seeds would reverse the result: the mean is near zero, so additional seeds would narrow the interval around it rather than move it away from zero.
+
 \begin{table}[t]
-\caption{Per-seed results, with both columns reported under the sign convention [Grad $-$ Random]. Col.~2 is the accuracy-BWT difference: the difference in mean final-minus-learned option-scoring accuracy over the prior discrete-option tasks (Medical and Legal), not a difference of final accuracies. It is therefore a retention quantity on the same footing as the loss-based BWT column. Col.~2 is reported in percentage points in every row and carries the 95\% $t$-interval on the seven-seed mean. Col.~3 is the loss-based BWT difference on the same A800 environment and has mean $+0.152$ (SD $0.0749$, $t = 5.37$, CI $[+0.083, +0.221]$, 7/7 same direction). The V100 contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 contrast difference has mean $-0.0033$ and SD $0.0441$, so replication is strongest at the mean and directional levels rather than as seed-wise numerical identity.}
+\caption{Per-seed results, both columns in the direction [Grad $-$ Random] (positive = gradient forgets more). Col.~2 is the accuracy-BWT difference: the difference in mean final-minus-learned accuracy over the prior discrete-option tasks, not a difference of final accuracies. It is therefore a retention quantity on the same footing as the loss column and does not mix learning with retention. Col.~2 is reported in percentage points and is measured in the A800 accuracy runs; Col.~3 is the loss-based BWT difference from the A800 loss runs. Together they form a second environment relative to the original V100 loss runs. Col.~2 carries the 95\% $t$-interval on the seven-seed mean. Col.~3 has mean $+0.152$ (SD $0.0749$, $t=5.37$, CI $[+0.083,+0.221]$, 7/7 same direction). The V100 loss contrast is $+0.155$ under the same [Grad $-$ Random] convention. Across matched seeds, the A800-minus-V100 loss-contrast difference has mean $-0.0033$ and SD $0.0441$, so individual seeds move between environments even though the average does not.}
 \label{tab:accuracy_branch}
 \centering
 \small
@@ -515,7 +517,7 @@ Table~\ref{tab:positioning} places our contribution against the gradient-attribu
 \begin{table}[h]
 \centering
 \small
-\caption{Positioning against gradient-attribution families. "B=0 pool" isolates the \texttt{lora\_B} pool; "within-pool grad-vs-random" compares gradient to a matched random baseline in a shared pool.}
+\caption{Positioning against gradient-attribution families. ``B=0 pool'' marks a method whose attribution is computed at a zero-initialized LoRA, where the gradient with respect to \texttt{lora\_A} is zero and the mask is confined to \texttt{lora\_B}; ``within-pool grad-vs-random'' marks a method compared against a matched random baseline drawn from the same pool. Attribution-Guided CL computes its attribution from a separately trained model ($B\neq0$ at scoring time) and gates gradients continuously rather than selecting a binary mask, so it is outside the first axis by construction and unmatched on the second.}
 \label{tab:positioning}
 \begin{tabular}{@{}lcc@{}}
 \toprule
@@ -523,11 +525,10 @@ Table~\ref{tab:positioning} places our contribution against the gradient-attribu
 \midrule
 EWC / SI / MAS & No & No \\
 PiSSA ($B\neq0$) & N/A by init & No \\
-Attribution-Guided CL & Unclear$^{\dagger}$ & Unclear$^{\dagger}$ \\
+Attribution-Guided CL (post-training attribution) & N/A by design & No \\
 \textbf{Ours (within-\texttt{lora\_B})} & \textbf{Yes} & \textbf{Yes} \\
 \bottomrule
 \end{tabular}
-\parbox{0.88\textwidth}{\footnotesize $^{\dagger}$The published description does not establish all initialization, attribution-timing, baseline-pool, and mask-scope details required to classify these two axes; we therefore do not infer a pool mismatch.}
 \end{table}
 
 Table~\ref{tab:rule_positioning} lists the selection rules this paper is positioned against and marks which we train under one protocol. Only the rules we train contribute empirical numbers here; the rest are compared by their published design, with none of their reported numbers presented as a measurement of ours.
@@ -626,10 +627,12 @@ creative & $2.104 \pm 0.053$ & $\mathbf{2.067 \pm 0.053}$ & $2.056 \pm 0.054$ \\
 \end{tabular}
 \end{table}
 
-A second rival reading is that BWT, being a difference of losses, is inflated for gradient-B simply because it starts from a lower per-task loss. Reconstructing each seed's mean per-task endpoint (BWT plus the mean diagonal over the first four tasks) closes this from both sides: gradient-B starts \emph{lower} yet ends \emph{higher} in 6 of 7 seeds, so its larger BWT reflects greater forgetting rather than a lower baseline (Table~\ref{tab:d1_endpoint}).
+A second rival reading is that BWT, being a difference of losses, is inflated for gradient-B simply because it starts from a lower per-task loss. The endpoint closes this from both sides. Because BWT is the mean over prior tasks of (final loss $-$ learned loss) and the start is the mean learned loss over those same tasks, the endpoint is exactly the mean final held-out loss over the first four tasks, read directly from the final row of the stored loss matrix rather than reconstructed. gradient-B starts \emph{lower} yet ends \emph{higher} in 6 of 7 seeds, so its larger BWT reflects greater forgetting rather than a lower baseline (Table~\ref{tab:d1_endpoint}). Measured on the same seven within-session pairs, the endpoint difference averages $+0.0813$ (SD $0.0710$; paired $t(6)=3.03$, $p=0.023$, 95\% CI $[+0.016,+0.147]$, Cohen's $d_z=1.15$). The second environment agrees in both mean and direction: $+0.078$ ($t(6)=2.62$, $p=0.039$, 6/7), a mean separation of $0.003$ from the V100 estimate. Thus Random-B's advantage is not confined to a BWT normalization: it also achieves lower final held-out loss on the prior tasks.
+
+The endpoint significance is less robust than the headline BWT contrast to single-seed deletion. Three of the seven leave-one-out fits exceed $p=0.05$: dropping seed 42 or 123 gives $p=0.058$, and dropping seed 4096 gives $p=0.059$, all with a mean of about $+0.076$. The remaining four deletions give $p\leq0.048$. We therefore treat the endpoint as a directional result supported by the paired design rather than as an effect that survives arbitrary single-seed removal; the density-matched BWT contrast on the same seven pairs is robust to every single-seed deletion ($p\leq0.005$ throughout).
 
 \begin{table}[ht]
-\caption{Derived per-task endpoint loss (BWT + mean diagonal over the first four tasks), per seed. gradient-B's endpoint is higher in 6 of 7 seeds; seed 789 is the exception. These are derived quantities of the same order as cross-run drift, reported for the qualitative direction only.}
+\caption{Mean final held-out loss over the four prior tasks, per seed, read from the final row of the stored loss matrix. Start is the same quantity at each task's own training step; end is at the end of the sequence. gradient-B's endpoint is higher in 6 of 7 seeds (seed 789 is the exception); paired $t(6)=3.03$, $p=0.023$, mean $+0.081$ on the V100, and $+0.078$ ($p=0.039$) on the A800. Three of the seven single-seed deletions fall above $p=0.05$ (seeds 42, 123, 4096); see text.}
 \label{tab:d1_endpoint}
 \centering
 \small
@@ -648,4 +651,4 @@ A second rival reading is that BWT, being a difference of losses, is inflated fo
 \end{tabular}
 \end{table}
 
-Both checks are loss-based (accuracy is measured separately in the accuracy branch, \S\ref{sec:accuracy_branch}), use a single task order, and cover Qwen2.5-3B only. The endpoint reconstruction is a derived quantity whose per-seed differences are of the same magnitude as the cross-run drift documented in Appendix~\ref{app:nf4_drift}; it is therefore offered as a qualitative directional exclusion, not a significance claim.
+Both checks are loss-based (accuracy is measured separately in the accuracy branch, \S\ref{sec:accuracy_branch}), use a single task order, and cover Qwen2.5-3B only. The endpoint is read directly from the final row of the stored matrices, so its per-seed differences are load-bearing rather than derived; the caveat above concerns the $n=7$ fragility of the full-set significance, not the definition of the quantity.
