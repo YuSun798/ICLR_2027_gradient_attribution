@@ -10,7 +10,7 @@ We separate the two by restricting both arms to the same pool and parameter coun
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[b]{0.9\textwidth}
+\begin{minipage}[b]{0.85\textwidth}
 \centering
 \includegraphics[width=\textwidth]{figures/figure1a_method_overview_corrected_v6.pdf}
 \centerline{\footnotesize (a) Method and comparison.}
@@ -25,7 +25,9 @@ We separate the two by restricting both arms to the same pool and parameter coun
 \end{figure}
 
 \textbf{A gradient-attribution confound and density-matched evaluation.}
-We separate candidate-pool, density, and ranking-rule effects, yielding a comparison in which the selection criterion is the only varying factor.
+% We separate candidate-pool, density, and ranking-rule effects, yielding a comparison in which the selection criterion is the only varying factor.
+
+We show that under standard zero-initialized LoRA, initialization-time gradient attribution assigns zero importance to \texttt{lora\_A}, so an unrestricted gradient-versus-random comparison changes both the selection rule and the candidate parameter pool. We resolve this confound with a within-\texttt{lora\_B}, density-matched design that holds the candidate pool and update budget fixed, leaving the selection criterion as the only varying factor.
 
 \textbf{Practical validation and scope.}
 We quantify the cost of the attribution pass and evaluate the same comparison using accuracy-based retention (accuracy-BWT). The accuracy-BWT interval spans zero and does not establish the pre-specified 4-point non-inferiority criterion, so the engineering recommendation is scoped to the loss-based evidence. Removing attribution eliminates a one-time 64-sample calibration forward--backward pass (64 steps), equal to 12.8\% of one 500-step task-training budget, together with the calibration-data requirement.
