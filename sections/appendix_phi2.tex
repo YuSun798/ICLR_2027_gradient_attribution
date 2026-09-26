@@ -22,7 +22,7 @@ Mean & --- & --- & $-0.1152$ (SD $0.0173$) \\
 \end{tabular}
 \end{table}
 
-The direction replicates in all four seeds. The mean paired contrast is $-0.1152$ (SD $0.0173$), with paired $t(3)=-13.32$, $p=0.0009$, and 95\% CI $[-0.143,-0.088]$. A two-sided sign test over four concordant seeds gives $p=0.125$; because $n=4$ is too small for a strong distributional claim and the normality assumption behind the paired $t$-test is weak, we treat the $t$ statistic as a supporting parametric summary rather than resting the replication claim on it. The replication claim is instead based on the density-matched design and the 4/4 directional agreement.
+The direction replicates in all four seeds (Table~\ref{tab:phi2_d1}). The mean paired contrast is $-0.1152$ (SD $0.0173$), with paired $t(3)=-13.32$, $p=0.0009$, and 95\% CI $[-0.143,-0.088]$. A two-sided sign test over four concordant seeds gives $p=0.125$; because $n=4$ is too small for a strong distributional claim and the normality assumption behind the paired $t$-test is weak, we treat the $t$ statistic as a supporting parametric summary rather than resting the replication claim on it. The replication claim is instead based on the density-matched design and the 4/4 directional agreement.
 
 \begin{table}[t]
 \caption{Density-matched D1 contrast on both architectures under the same sign convention, $\Delta=\text{Random-B}-\text{Grad-B}$ (negative means Random-B forgets less). Phi-2 is an architecturally distinct four-seed replication of the seven-seed Qwen2.5-3B result.}
@@ -39,6 +39,6 @@ Phi-2      & 4 & $-0.1152$ & 0.0173 & $-13.32$ & 0.0009 \\
 \end{tabular}
 \end{table}
 
-The task-level decomposition also resembles the primary model rather than merely sharing the aggregate sign. Averaged over the four Phi-2 seeds, Medical contributes 67.2\% of the aggregate contrast, Math 24.1\%, Code 5.8\%, and Legal 2.9\%; Medical is the largest contributor in every seed. On Qwen2.5-3B, Medical contributes 79.9\% of the matched contrast. Thus the two architectures agree on where most of the effect is concentrated, although the concentration is somewhat less extreme on Phi-2.
+Table~\ref{tab:phi2_d1_compare} places the clean Phi-2 replication beside the primary Qwen2.5-3B result under the same sign convention. The task-level decomposition also resembles the primary model rather than merely sharing the aggregate sign. Averaged over the four Phi-2 seeds, Medical contributes 67.2\% of the aggregate contrast, Math 24.1\%, Code 5.8\%, and Legal 2.9\%; Medical is the largest contributor in every seed. On Qwen2.5-3B, Medical contributes 79.9\% of the matched contrast. Thus the two architectures agree on where most of the effect is concentrated, although the concentration is somewhat less extreme on Phi-2.
 
 The replication uses the same five task domains, LoRA rank, calibration set, and 10\% \texttt{lora\_B} budget as D1. It differs in model family, in the Phi-2 LoRA target set (which omits \texttt{dense}, giving a 20{,}971{,}520-parameter trainable pool), and in the number of seeds. The earlier Phi-2 within-B comparison in Appendix~\ref{app:cross_arch} remains a density-unmatched boundary check; the results here are the clean cross-architecture counterpart to the headline density-matched D1 comparison.
